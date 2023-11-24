@@ -31,7 +31,7 @@ homepage = "https://naixtech.unice.fr/gitlab/qualia/qualia-codegen-plugin-snn"
 tests = ['pytest', 'pytest-xdist']
 lint = ['ruff']
 typecheck = ['mypy', 'pyright']
-docs = ['sphinx', 'sphinx-rtd-theme', 'myst-parser']
+docs = ['pdm', 'sphinx', 'sphinx-rtd-theme', 'myst-parser']
 
 [tool.pdm]
 
