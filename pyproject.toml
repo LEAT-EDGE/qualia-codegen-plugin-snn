@@ -35,6 +35,9 @@ docs = ['pdm', 'sphinx', 'sphinx-rtd-theme', 'myst-parser']
 
 [tool.pdm]
 
+[tool.pdm.resolution]
+respect-source-order = true
+
 [[tool.pdm.source]]
 name = "qualia-nightly"
 url = "https://naixtech.unice.fr/devpi/penovac/qualia-nightly/+simple"
