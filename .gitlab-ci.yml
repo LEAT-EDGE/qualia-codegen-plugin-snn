@@ -17,7 +17,7 @@ stages:          # List of stages for jobs, and their order of execution
 check-job:
   stage: check
   script:
-    - pip install --break-system-packages -e .[tests,lint,typecheck] --extra-index-url=https://naixtech.unice.fr/devpi/penovac/qualia-nightly/+simple --trusted-host naixtech.unice.fr
+    - pip install --pre --break-system-packages -e .[tests,lint,typecheck] --extra-index-url=https://naixtech.unice.fr/devpi/penovac/qualia-nightly/+simple --trusted-host naixtech.unice.fr
     - ruff check src || ((exit_code|=$?))
     - mypy || ((exit_code|=$?))
     - $(exit $exit_code)
@@ -47,7 +47,7 @@ doc-job:
     - pacman -S --noconfirm --needed python-pip python-pdm python-numpy python-pytorch
     - pacman -S --noconfirm --needed python-docutils python-torchvision python-tqdm
   script:
-    - pip install --break-system-packages -e .[docs] --extra-index-url=https://naixtech.unice.fr/devpi/penovac/qualia-nightly/+simple --trusted-host naixtech.unice.fr
+    - pip install --pre --break-system-packages -e .[docs] --extra-index-url=https://naixtech.unice.fr/devpi/penovac/qualia-nightly/+simple --trusted-host naixtech.unice.fr
     - make -C docs html
     - read RCLONE_SFTP_PASS < <(rclone obscure - < ${GITLAB_LDAP_PASSWORD}) && export RCLONE_SFTP_PASS
     - rclone sync --sftp-host naixtech.unice.fr --sftp-user gitlab docs/_build/html :sftp:/gitlab/public_html/docs/qualia-codegen-plugin-snn
