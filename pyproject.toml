@@ -25,7 +25,8 @@ dependencies = [
 dynamic = ["version"]
 
 [project.urls]
-homepage = "https://naixtech.unice.fr/gitlab/qualia/qualia-codegen-plugin-snn"
+homepage = "https://github.com/LEAT-EDGE/qualia-codegen-plugin-snn"
+documentation = "https://leat-edge.github.io/qualia-codegen-plugin-snn"
 
 [project.optional-dependencies]
 tests = ['pytest', 'pytest-xdist']
