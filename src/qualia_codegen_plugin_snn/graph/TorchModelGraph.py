@@ -8,8 +8,8 @@ import numpy as np
 import qualia_codegen_core.graph
 from qualia_codegen_core.graph.layers import TBaseLayer, TInputLayer
 from qualia_codegen_core.typing import DTypes, Shape, Shapes
-from spikingjelly.activation_based.layer import SeqToANNContainer, torch  # type: ignore[import]
-from spikingjelly.activation_based.neuron import IFNode, LIFNode, ParametricLIFNode  # type: ignore[import]
+from spikingjelly.activation_based.layer import SeqToANNContainer, torch  # type: ignore[import-untyped]
+from spikingjelly.activation_based.neuron import IFNode, LIFNode, ParametricLIFNode  # type: ignore[import-untyped]
 
 from .layers import (
     TIfLayer,
