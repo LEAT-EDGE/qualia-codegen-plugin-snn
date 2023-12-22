@@ -26,6 +26,7 @@
 #define WEIGHTS_SCALE_FACTOR {{ node.q.weights_scale_factor }}
 #define OUTPUT_SCALE_FACTOR {{ node.q.output_scale_factor }}
 #define TMP_SCALE_FACTOR {{ [node.innodes[0].q.output_scale_factor, node.q.weights_scale_factor] | max }}
+#define OUTPUT_ROUND_MODE ROUND_MODE_{{ node.q.output_round_mode | upper }}
 #define NUMBER_T {{ qtype2ctype(node.q.number_type, node.q.width) }}
 #define LONG_NUMBER_T {{ qtype2ctype(node.q.number_type, node.q.long_width) }}
 
@@ -44,7 +45,7 @@ static inline void {{ node.layer.name }}(
 #endif
   NUMBER_T output[INPUT_SAMPLESH][INPUT_SAMPLESW][INPUT_CHANNELS]) {	        // OUT
 
-  LONG_NUMBER_T v_threshold_scaled_to_tmp = scale(NUMBER_T, (LONG_NUMBER_T)v_threshold, WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR);
+  LONG_NUMBER_T v_threshold_scaled_to_tmp = scale(NUMBER_T, (LONG_NUMBER_T)v_threshold, WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE);
   LONG_NUMBER_T tmp;
   unsigned short j, h, w;
 
@@ -52,19 +53,19 @@ static inline void {{ node.layer.name }}(
     for (w = 0; w < INPUT_SAMPLESW; w++) {
       for (j = 0; j < INPUT_CHANNELS; j++) {
         // Scale potential and inputs to same factor, max between input and weights(potential) scale factor for the addition and put result into long variable to avoid overflow
-        tmp = scale(NUMBER_T, (LONG_NUMBER_T){{ node.layer.name }}_potent[h][w][j], WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR);
-        tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)input[h][w][j], INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR);
+        tmp = scale(NUMBER_T, (LONG_NUMBER_T){{ node.layer.name }}_potent[h][w][j], WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE);
+        tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)input[h][w][j], INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE);
 
         // fire
         if (tmp - v_threshold_scaled_to_tmp >= 0) {
-          output[h][w][j] = clamp_to(NUMBER_T, scale(NUMBER_T, 1, -OUTPUT_SCALE_FACTOR));
+          output[h][w][j] = clamp_to(NUMBER_T, scale(NUMBER_T, 1, -OUTPUT_SCALE_FACTOR, OUTPUT_ROUND_MODE));
 
           // Reset
 #if SOFTRESET
           tmp = tmp - v_threshold_scaled_to_tmp;
 
           // Scale back to WEIGHTS_SCALE_FACTOR used by potent
-          tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR);
+          tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR, OUTPUT_ROUND_MODE);
           {{ node.layer.name }}_potent[i][j] = clamp_to(NUMBER_T, tmp);
 #else
           // v_reset already scaled to WEIGHTS_SCALE_FACTOR
@@ -74,7 +75,7 @@ static inline void {{ node.layer.name }}(
           output[h][w][j] = 0;
 
           // Scale back to WEIGHTS_SCALE_FACTOR used by potent
-          tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR);
+          tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR, OUTPUT_ROUND_MODE);
           {{ node.layer.name }}_potent[h][w][j] = clamp_to(NUMBER_T, tmp);
         }
 
@@ -114,26 +115,26 @@ static inline void {{ node.layer.name }}(
 #endif
   NUMBER_T output[INPUT_SAMPLES][INPUT_CHANNELS]) {	        // OUT
 
-  LONG_NUMBER_T v_threshold_scaled_to_tmp = scale(NUMBER_T, (LONG_NUMBER_T)v_threshold, WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR);
+  LONG_NUMBER_T v_threshold_scaled_to_tmp = scale(NUMBER_T, (LONG_NUMBER_T)v_threshold, WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE);
   LONG_NUMBER_T tmp;
   unsigned short i, j; 	                                    // loop indexes for output volume
 
   for (i = 0; i < INPUT_SAMPLES; i++) {
     for (j = 0; j < INPUT_CHANNELS; j++) {
       // Scale potential and inputs to same factor, max between input and weights(potential) scale factor for the addition and put result into long variable to avoid overflow
-      tmp = scale(NUMBER_T, (LONG_NUMBER_T){{ node.layer.name }}_potent[i][j], WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR);
-      tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)input[i][j], INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR);
+      tmp = scale(NUMBER_T, (LONG_NUMBER_T){{ node.layer.name }}_potent[i][j], WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE);
+      tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)input[i][j], INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE);
 
       // fire
       if (tmp - v_threshold_scaled_to_tmp >= 0) {
-        output[i][j] = clamp_to(NUMBER_T, scale(NUMBER_T, 1, -OUTPUT_SCALE_FACTOR));
+        output[i][j] = clamp_to(NUMBER_T, scale(NUMBER_T, 1, -OUTPUT_SCALE_FACTOR, OUTPUT_ROUND_MODE));
 
         // Reset
 #if SOFTRESET
         tmp = tmp - v_threshold_scaled_to_tmp;
 
         // Scale back to WEIGHTS_SCALE_FACTOR used by potent
-        tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR);
+        tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR, OUTPUT_ROUND_MODE);
         {{ node.layer.name }}_potent[i][j] = clamp_to(NUMBER_T, tmp);
 #else
         // v_reset already scaled to WEIGHTS_SCALE_FACTOR
@@ -143,7 +144,7 @@ static inline void {{ node.layer.name }}(
         output[i][j] = 0;
 
         // Scale back to WEIGHTS_SCALE_FACTOR used by potent
-        tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR);
+        tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR, OUTPUT_ROUND_MODE);
         {{ node.layer.name }}_potent[i][j] = clamp_to(NUMBER_T, tmp);
       }
 
