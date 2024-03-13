@@ -66,7 +66,7 @@ static inline void {{ node.layer.name }}(
 
           // Scale back to WEIGHTS_SCALE_FACTOR used by potent
           tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR, OUTPUT_ROUND_MODE);
-          {{ node.layer.name }}_potent[i][j] = clamp_to(NUMBER_T, tmp);
+          {{ node.layer.name }}_potent[h][w][j] = clamp_to(NUMBER_T, tmp);
 #else
           // v_reset already scaled to WEIGHTS_SCALE_FACTOR
           {{ node.layer.name }}_potent[h][w][j] = v_reset;
