@@ -8,6 +8,7 @@ import numpy as np
 import qualia_codegen_core.graph
 from qualia_codegen_core.graph.layers import TBaseLayer, TInputLayer
 from qualia_codegen_core.typing import DTypes, Shape, Shapes
+from spikingjelly.activation_based import functional  # type: ignore[import-untyped]
 from spikingjelly.activation_based.layer import SeqToANNContainer, torch  # type: ignore[import-untyped]
 from spikingjelly.activation_based.neuron import IFNode, LIFNode, ParametricLIFNode  # type: ignore[import-untyped]
 
@@ -63,6 +64,9 @@ class TorchModelGraph(qualia_codegen_core.graph.TorchModelGraph):
                                                       tuple[type[TBaseLayer], list[Any]]]] | None = None) -> ModelGraph | None:
         custom_layers = custom_layers if custom_layers is not None else {}
         custom_layers = {**TorchModelGraph.MODULE_MAPPING, **custom_layers}
+
+        # Make sure to reset network before tracing, otherwise spiking neurons may have wrong potential shape
+        functional.reset_net(self._model)
 
         # Monkey-patch SeqToANNContainer forward() to be able to trace enclosed module properly
         seqtoanncontainer_forward = SeqToANNContainer.forward
