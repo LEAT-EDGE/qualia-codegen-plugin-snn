@@ -19,6 +19,7 @@ from .layers import (
 
 if TYPE_CHECKING:
     from qualia_codegen_core.graph import ModelGraph
+    from torch.fx.node import Node
     from torch.nn import Module
 
 if sys.version_info >= (3, 12):
@@ -80,7 +81,7 @@ class TorchModelGraph(qualia_codegen_core.graph.TorchModelGraph):
         return ret
 
     @override
-    def _convert_placeholder(self) -> TBaseLayer | None:
+    def _convert_placeholder(self, layer: Node) -> TBaseLayer | None:
         if not hasattr(self._model, 'input_shape') or not isinstance(self._model.input_shape, tuple):
             logger.error('Model must have input_shape attribute')
             return None
@@ -90,5 +91,11 @@ class TorchModelGraph(qualia_codegen_core.graph.TorchModelGraph):
             # Prepend dummy dimension instead of timestep if not SNN model
             shp = Shape((1, *shp))
 
+        inputs_shape = Shapes((shp,))
         # Assume input is single-precision floating-point # WIP it could change
-        return TInputLayer(Shapes((shp,)), Shapes((shp,)), DTypes((np.float32,)), 'input')
+        inputs_dtype = DTypes((np.float32,))
+        dummy_inputs = self._generate_dummy_inputs(inputs_shape, inputs_dtype)
+        # Only one input
+        self._layer_outputs[layer.name] = dummy_inputs[0]
+
+        return TInputLayer(inputs_shape, inputs_shape, inputs_dtype, 'input')
