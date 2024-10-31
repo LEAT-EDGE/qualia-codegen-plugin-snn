@@ -26,6 +26,11 @@ message(STATUS "Found Qualia-CodeGen-Core examples: ${QUALIA_CODEGEN_CORE_EXAMPL
 
 add_subdirectory("${QUALIA_CODEGEN_CORE_EXAMPLES_SOURCE_DIR}/NucleoL452REP" ${CMAKE_CURRENT_BINARY_DIR}/qualia-codegen-core)
 
+# Output binary to root binary directory instead of qualia-codegen-core subdirectory
+set_target_properties(NucleoL452REP
+  PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+)
+
 # Do not build original non-spiking main
 set_source_files_properties("${QUALIA_CODEGEN_CORE_EXAMPLES_SOURCE_DIR}/NucleoL452REP/Core/Src/main.c"
   TARGET_DIRECTORY NucleoL452REP
