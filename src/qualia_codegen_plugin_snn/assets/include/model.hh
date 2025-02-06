@@ -25,6 +25,7 @@ extern "C" {
 
 {% if nodes[0].output_shape[0][0] is not none %}
 #define MODEL_INPUT_TIMESTEPS {{ nodes[0].output_shape[0][0] }} // First dimension is timesteps for SNN
+#define MODEL_INPUT_TIMESTEP_MODE_{{ timestep_mode | upper }}
 {% endif %}
 
 {% for dim in nodes[0].output_shape[0][1:] %}

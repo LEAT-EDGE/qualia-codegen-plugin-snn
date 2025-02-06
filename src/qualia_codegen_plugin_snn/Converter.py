@@ -6,7 +6,7 @@ import logging
 import sys
 from importlib.resources import files
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 import qualia_codegen_core
 
@@ -14,6 +14,12 @@ from .graph import layers
 
 if TYPE_CHECKING:
     from qualia_codegen_core.graph.layers import TBaseLayer
+    from qualia_codegen_core.graph.ModelGraph import ModelGraph
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +35,7 @@ class Converter(qualia_codegen_core.Converter):
 
     TEMPLATE_PATH = files('qualia_codegen_plugin_snn.assets')
 
-    def __init__(self, output_path: Path | None = None) -> None:
+    def __init__(self, output_path: Path | None = None, timestep_mode: Literal['duplicate', 'iterate'] = 'duplicate') -> None:
         super().__init__(output_path=output_path)
 
         # Super failed to popuate template_path
@@ -49,3 +55,13 @@ class Converter(qualia_codegen_core.Converter):
             self._template_path.insert(0, template_path)
         else: # If we failed, also clear _template_path to fail conversion altogether instead of having incorrect search path
             self._template_path = None
+
+        self.__timestep_mode = timestep_mode
+
+    @override
+    def write_model_header(self, modelgraph: ModelGraph) -> str:
+        return self.render_template('include/model.hh',
+                                    self.output_path_header / 'model.h',
+                                    nodes=modelgraph.nodes,
+                                    qtype2ctype=self.dataconverter.qtype2ctype,
+                                    timestep_mode=self.__timestep_mode)
