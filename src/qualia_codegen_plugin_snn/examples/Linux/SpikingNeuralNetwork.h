@@ -53,6 +53,47 @@ public:
 
     return preds;
   }
+
+#ifdef MODEL_INPUT_TIMESTEP_MODE_ITERATE
+  std::array<std::remove_all_extents<output_t>::type, MODEL_OUTPUT_SAMPLES> evaluate_timesteps(
+    const std::array<float, MODEL_INPUT_TIMESTEPS * MODEL_INPUT_DIMS> input,
+    const std::array<float, MODEL_OUTPUT_SAMPLES> targets) {
+    std::array<std::array<float, MODEL_INPUT_DIMS>, MODEL_INPUT_TIMESTEPS> input_timesteps;
+    for (size_t i = 0; i < MODEL_INPUT_TIMESTEPS; i++) {
+      for (size_t j = 0; j < MODEL_INPUT_DIMS; j++) {
+        input_timesteps[i][j] = input[i * MODEL_INPUT_DIMS + j];
+      }
+    }
+
+    auto preds = this->run(input_timesteps.at(0));
+    // Accumulate over timesteps
+		for (int t = 1; t < MODEL_INPUT_TIMESTEPS; t++) {
+      std::transform(preds.begin(),
+                     preds.end(),
+                     this->run(input_timesteps.at(t)).begin(),
+                     preds.begin(),
+                     std::plus<std::remove_all_extents<output_t>::type>());
+    }
+
+    reset();
+
+    // Quantize targets to match outputs
+    std::array<MODEL_INPUT_NUMBER_T, MODEL_OUTPUT_SAMPLES> q_targets{};
+    std::transform(targets.begin(),
+                   targets.end(),
+                   q_targets.begin(),
+                   [](float v) {
+                    return clamp_to(MODEL_OUTPUT_NUMBER_T, (MODEL_OUTPUT_LONG_NUMBER_T)round_with_mode(v * (1 << MODEL_OUTPUT_SCALE_FACTOR), MODEL_OUTPUT_ROUND_MODE));
+                   });
+
+    for (auto &metric: this->metrics) {
+      metric->update(preds, q_targets);
+    }
+
+    return preds;
+  }
+#endif
+  
 };
 
 #endif//_SPIKINGNEURALNETWORK_H_

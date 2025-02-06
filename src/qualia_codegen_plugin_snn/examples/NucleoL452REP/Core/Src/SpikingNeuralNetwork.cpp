@@ -17,7 +17,13 @@ struct NNResult spikingNeuralNetworkInfer(const float input[]) {
 	static output_t new_outputs;
 	
 	for (int t = 1; t < MODEL_INPUT_TIMESTEPS; t++) {
+#ifdef MODEL_INPUT_TIMESTEP_MODE_DUPLICATE
 		neuralNetworkRun(input, new_outputs);
+#elif defined(MODEL_INPUT_TIMESTEP_MODE_ITERATE)
+		neuralNetworkRun(input + t * MODEL_INPUT_DIMS, new_outputs);
+#else
+	#error "Unknown input timestep mode"
+#endif
 
 		for (size_t j = 0; j < MODEL_OUTPUT_SAMPLES; j++) {
 			outputs[j] += new_outputs[j];

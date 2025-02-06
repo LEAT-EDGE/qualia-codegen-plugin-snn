@@ -123,7 +123,8 @@ int main(void)
   while (1)
   {
     if (receive_buff_cnt > 0 && receive_buff[receive_buff_cnt - 1] == '\n') {
-      float *inputs = serialBufToFloats(receive_buff, receive_buff_cnt);
+      float inputs[MODEL_INPUT_DIMS];
+      stringToFloatArray(inputs, sizeof(inputs) / sizeof(float), receive_buff, receive_buff_cnt);
       size_t len = snprintf(send_msg, 32, "%d\r\n", receive_buff_cnt);
       receive_buff_cnt = 0;
       HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t*)receive_buff, MAX_READ_SIZE);

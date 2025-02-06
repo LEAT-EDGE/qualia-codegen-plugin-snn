@@ -36,7 +36,13 @@ void evaluate(const std::vector<std::array<float, InputDims>> &inputs, const std
 	static SpikingNeuralNetwork nn{metrics};
 
 	for (size_t i = 0;  i < inputs.size() ; i++){ //&& i < labels.size()-1000; i++) {
+#ifdef MODEL_INPUT_TIMESTEP_MODE_DUPLICATE
 		nn.evaluate(inputs.at(i), targets.at(i));
+#elif defined(MODEL_INPUT_TIMESTEP_MODE_ITERATE)
+		nn.evaluate_timesteps(inputs.at(i), targets.at(i));
+#else
+	#error "Unknown input timestep mode"
+#endif
 	}
 
 	auto metrics_result = nn.getMetricsResult();
@@ -52,7 +58,14 @@ int main(int argc, const char *argv[]) {
 		exit(1);
 	}
 
+
+#ifdef MODEL_INPUT_TIMESTEP_MODE_DUPLICATE
 	auto inputs = readInputsFromFile<MODEL_INPUT_DIMS>(argv[1]);
+#elif defined(MODEL_INPUT_TIMESTEP_MODE_ITERATE)
+	auto inputs = readInputsFromFile<MODEL_INPUT_TIMESTEPS * MODEL_INPUT_DIMS>(argv[1]);
+#else
+	#error "Unknown input timestep mode"
+#endif
 	auto labels = readInputsFromFile<MODEL_OUTPUT_SAMPLES>(argv[2]);
 
 	evaluate(inputs, labels);
