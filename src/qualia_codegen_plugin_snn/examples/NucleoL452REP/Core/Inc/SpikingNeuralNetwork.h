@@ -26,10 +26,14 @@ public:
   virtual std::array<std::remove_all_extents<output_t>::type, MODEL_OUTPUT_SAMPLES> evaluate(
     const std::array<float, MODEL_INPUT_DIMS> input,
     const std::array<float, MODEL_OUTPUT_SAMPLES> targets) {
-    auto preds = this->run(input);
+    // Use LONG_NUMBER_T to avoid overflow when accumulating over timesteps
+    std::array<MODEL_OUTPUT_LONG_NUMBER_T, MODEL_OUTPUT_SAMPLES> preds{};
+    // Averaged over timesteps with original NUMBER_T
+    std::array<std::remove_all_extents<output_t>::type, MODEL_OUTPUT_SAMPLES> preds_avg{};
+
 #ifdef MODEL_INPUT_TIMESTEPS
     // Accumulate over timesteps
-		for (int t = 1; t < MODEL_INPUT_TIMESTEPS; t++) {
+		for (int t = 0; t < MODEL_INPUT_TIMESTEPS; t++) {
       std::transform(preds.begin(),
                      preds.end(),
                      this->run(input).begin(),
@@ -39,7 +43,7 @@ public:
 
 		// Average over timesteps
 		for (size_t j = 0; j < MODEL_OUTPUT_SAMPLES; j++){
-			preds[j] = preds[j] / MODEL_INPUT_TIMESTEPS;
+			preds_avg[j] = preds[j] / MODEL_INPUT_TIMESTEPS;
 		}
 #endif
 		// Some models have an internal state that must be reset between each sample
@@ -55,10 +59,10 @@ public:
                    });
 
     for (auto &metric: this->metrics) {
-      metric->update(preds, q_targets);
+      metric->update(preds_avg, q_targets);
     }
 
-    return preds;
+    return preds_avg;
   }
 
 #ifdef MODEL_INPUT_TIMESTEP_MODE_ITERATE
@@ -71,15 +75,23 @@ public:
         input_timesteps[i][j] = input[i * MODEL_INPUT_DIMS + j];
       }
     }
+    // Use LONG_NUMBER_T to avoid overflow when accumulating over timesteps
+    std::array<MODEL_OUTPUT_LONG_NUMBER_T, MODEL_OUTPUT_SAMPLES> preds{};
+    // Averaged over timesteps with original NUMBER_T
+    std::array<std::remove_all_extents<output_t>::type, MODEL_OUTPUT_SAMPLES> preds_avg{};
 
-    auto preds = this->run(input_timesteps.at(0));
     // Accumulate over timesteps
-		for (int t = 1; t < MODEL_INPUT_TIMESTEPS; t++) {
+		for (int t = 0; t < MODEL_INPUT_TIMESTEPS; t++) {
       std::transform(preds.begin(),
                      preds.end(),
                      this->run(input_timesteps.at(t)).begin(),
                      preds.begin(),
-                     std::plus<std::remove_all_extents<output_t>::type>());
+                     std::plus<MODEL_OUTPUT_LONG_NUMBER_T>());
+    }
+
+    // Average over timesteps
+    for (size_t j = 0; j < MODEL_OUTPUT_SAMPLES; j++){
+      preds_avg[j] = preds[j] / MODEL_INPUT_TIMESTEPS;
     }
 
     reset();
@@ -94,10 +106,10 @@ public:
                    });
 
     for (auto &metric: this->metrics) {
-      metric->update(preds, q_targets);
+      metric->update(preds_avg, q_targets);
     }
 
-    return preds;
+    return preds_avg;
   }
 #endif
 };
