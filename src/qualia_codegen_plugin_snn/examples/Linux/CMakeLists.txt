@@ -1,7 +1,9 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.15)
 
 project(Linux C CXX ASM)
 
+set(Python3_FIND_STRATEGY "LOCATION")
+set(Python3_FIND_UNVERSIONED_NAMES FIRST)
 find_package(Python3 REQUIRED
   COMPONENTS Interpreter
 )
@@ -37,7 +39,7 @@ set(Linux_CFLAGS
   "-fdata-sections"
   "-ffunction-sections"
   "-fgraphite-identity"
-  "-floop-nest-optimize"
+#  "-floop-nest-optimize" # Broken with libisl 0.27 since 6dff4a1e274881b3b9b3077fd0624c8fb74136f9
   "-floop-parallelize-all"
 
   "-fsanitize=signed-integer-overflow"
@@ -46,6 +48,13 @@ set(Linux_CFLAGS
 
   "-fdiagnostics-color=always"
 )
+
+# No sanitizer library on Windows so just generate trap
+if(WIN32)
+  LIST(APPEND Linux_CFLAGS
+    "-fsanitize-trap=all"
+  )
+endif()
 
 add_compile_options(
   ${Linux_CFLAGS}
@@ -73,14 +82,14 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 #)
 
 target_compile_features(${PROJECT_NAME} PRIVATE
-  cxx_std_20
+  cxx_std_17
 )
 
 add_executable(single
   single.cpp)
 
 target_compile_features(single PRIVATE
-  cxx_std_20
+  cxx_std_17
 )
 
 target_link_libraries(single PUBLIC
