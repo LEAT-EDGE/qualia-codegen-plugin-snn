@@ -122,21 +122,33 @@ static inline void {{ node.layer.name }}_reset_pot(){
 {% else %} // 1D
 {% if node.input_shape[0] | length == 3 %}
 #define INPUT_SAMPLES   {{ node.input_shape[0][-2] }}
+#define INPUT(i, j) input[i][j]
+#define OUTPUT(i, j) output[i][j]
 {% elif node.input_shape[0] | length == 2 %}
 #define INPUT_SAMPLES   1
+#define INPUT(i, j) input[j]
+#define OUTPUT(i, j) output[j]
 {% endif %}
 
 static NUMBER_T {{ node.layer.name }}_potent[INPUT_SAMPLES][INPUT_CHANNELS];	        // INOUT
 
 
 static inline void {{ node.layer.name }}(
+{% if node.input_shape[0] | length == 3 %}
   const NUMBER_T input[INPUT_SAMPLES][INPUT_CHANNELS], 	    // IN
+{% elif node.input_shape[0] | length == 2 %}  // Flat
+  const NUMBER_T input[INPUT_CHANNELS], 	    // IN
+{% endif %}
   const NUMBER_T v_threshold,
 #if !SOFTRESET
   const NUMBER_T v_reset,
 #endif
   const NUMBER_T reciprocal_tau,
+{% if node.input_shape[0] | length == 3 %}
   NUMBER_T  output[INPUT_SAMPLES][INPUT_CHANNELS]) {	        // OUT
+{% elif node.input_shape[0] | length == 2 %}  // Flat
+  NUMBER_T  output[INPUT_CHANNELS]) {	        // OUT
+{% endif %}
 
   LONG_NUMBER_T v_threshold_scaled_to_tmp = scale(NUMBER_T, (LONG_NUMBER_T)v_threshold, WEIGHTS_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE);
 #if !SOFTRESET
@@ -157,18 +169,18 @@ static inline void {{ node.layer.name }}(
 #endif
 
 #if DECAY_INPUT
-      tmp = scale(NUMBER_T, (LONG_NUMBER_T)input[i][j], INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE) - tmp; // (x - (v - v_reset))
+      tmp = scale(NUMBER_T, (LONG_NUMBER_T)INPUT(i, j), INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE) - tmp; // (x - (v - v_reset))
       tmp = scale(NUMBER_T, tmp * reciprocal_tau, TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (x - (v - v_reset)) / tau
       tmp = potential_scaled_to_tmp + tmp; // v + (x - (v - v_reset)) / tau
 #else
       tmp = scale(NUMBER_T, tmp * reciprocal_tau, TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau
-      tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)input[i][j], INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau + x
+      tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)INPUT(i, j), INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau + x
       tmp = potential_scaled_to_tmp - tmp; // v - (v - v_reset) / tau + x
 #endif
 
       // fire
       if (tmp - v_threshold_scaled_to_tmp >= 0) {
-        output[i][j] = clamp_to(NUMBER_T, scale(NUMBER_T, 1, -OUTPUT_SCALE_FACTOR, OUTPUT_ROUND_MODE));
+        OUTPUT(i, j) = clamp_to(NUMBER_T, scale(NUMBER_T, 1, -OUTPUT_SCALE_FACTOR, OUTPUT_ROUND_MODE));
 
         // Reset
 #if SOFTRESET
@@ -182,7 +194,7 @@ static inline void {{ node.layer.name }}(
         {{ node.layer.name }}_potent[i][j] = v_reset;
 #endif
       } else {
-        output[i][j] = 0;
+        OUTPUT(i, j) = 0;
 
         // Scale back to WEIGHTS_SCALE_FACTOR used by potent
         tmp = scale(NUMBER_T, tmp, TMP_SCALE_FACTOR - WEIGHTS_SCALE_FACTOR, OUTPUT_ROUND_MODE);
@@ -203,6 +215,8 @@ static inline void {{ node.layer.name }}_reset_pot(){
 }
 
 #undef INPUT_SAMPLES
+#undef INPUT
+#undef OUTPUT
 {% endif %}
 
 

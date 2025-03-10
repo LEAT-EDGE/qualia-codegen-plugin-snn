@@ -34,13 +34,21 @@ void {{ node.layer.name }}(
   const number_t input[INPUT_SAMPLESH][INPUT_SAMPLESW][INPUT_CHANNELS], 	    // IN
   number_t  output[INPUT_SAMPLESH][INPUT_SAMPLESW][INPUT_CHANNELS]);	        // OUT
 #endif
-{% else %} // 1D
+{% elif node.input_shape[0] | length == 3 %}  // 1D
 typedef {{ qtype2ctype(node.q.number_type, node.q.width) }} {{ node.layer.name }}_output_type[INPUT_SAMPLES][INPUT_CHANNELS];
 
 #if 0
 void {{ node.layer.name }} (
   const number_t input[INPUT_SAMPLES][INPUT_CHANNELS], 	    // IN
   number_t  output[INPUT_SAMPLES][INPUT_CHANNELS]);	        // OUT
+#endif
+{% elif node.input_shape[0] | length == 2 %}  // Flat
+typedef {{ qtype2ctype(node.q.number_type, node.q.width) }} {{ node.layer.name }}_output_type[INPUT_CHANNELS];
+
+#if 0
+void {{ node.layer.name }} (
+  const number_t input[INPUT_CHANNELS], 	    // IN
+  number_t  output[INPUT_CHANNELS]);	        // OUT
 #endif
 
 {% endif %}
