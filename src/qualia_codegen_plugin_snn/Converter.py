@@ -35,8 +35,11 @@ class Converter(qualia_codegen_core.Converter):
 
     TEMPLATE_PATH = files('qualia_codegen_plugin_snn.assets')
 
-    def __init__(self, output_path: Path | None = None, timestep_mode: Literal['duplicate', 'iterate'] = 'duplicate') -> None:
-        super().__init__(output_path=output_path)
+    def __init__(self,
+                 output_path: Path | None = None,
+                 dump_featuremaps: bool = False,  # noqa: FBT001, FBT002
+                 timestep_mode: Literal['duplicate', 'iterate'] = 'duplicate') -> None:
+        super().__init__(output_path=output_path, dump_featuremaps=dump_featuremaps)
 
         # Super failed to popuate template_path
         if self._template_path is None:
