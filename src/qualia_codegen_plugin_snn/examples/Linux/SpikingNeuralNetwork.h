@@ -42,17 +42,17 @@ public:
 		// Some models have an internal state that must be reset between each sample
     reset();
 
-    // Quantize targets to match outputs
-    std::array<MODEL_INPUT_NUMBER_T, MODEL_OUTPUT_SAMPLES> q_targets{};
-    std::transform(targets.begin(),
-                   targets.end(),
-                   q_targets.begin(),
-                   [](float v) {
-                    return clamp_to(MODEL_OUTPUT_NUMBER_T, (MODEL_OUTPUT_LONG_NUMBER_T)round_with_mode(v * (1 << MODEL_OUTPUT_SCALE_FACTOR), MODEL_OUTPUT_ROUND_MODE));
+    // De-quantize predictions to match targets for metrics computation
+    std::array<metric_return_t, MODEL_OUTPUT_SAMPLES> deqpreds{};
+    std::transform(preds.begin(),
+                   preds.end(),
+                   deqpreds.begin(),
+                   [](MODEL_OUTPUT_NUMBER_T v) {
+                    return static_cast<metric_return_t>(v) / (1 << MODEL_OUTPUT_SCALE_FACTOR);
                    });
 
     for (auto &metric: this->metrics) {
-      metric->update(preds_avg, q_targets);
+      metric->update(deqpreds, targets);
     }
 
     return preds_avg;
@@ -89,17 +89,17 @@ public:
 
     reset();
 
-    // Quantize targets to match outputs
-    std::array<MODEL_INPUT_NUMBER_T, MODEL_OUTPUT_SAMPLES> q_targets{};
-    std::transform(targets.begin(),
-                   targets.end(),
-                   q_targets.begin(),
-                   [](float v) {
-                    return clamp_to(MODEL_OUTPUT_NUMBER_T, (MODEL_OUTPUT_LONG_NUMBER_T)round_with_mode(v * (1 << MODEL_OUTPUT_SCALE_FACTOR), MODEL_OUTPUT_ROUND_MODE));
+    // De-quantize predictions to match targets for metrics computation
+    std::array<metric_return_t, MODEL_OUTPUT_SAMPLES> deqpreds{};
+    std::transform(preds.begin(),
+                   preds.end(),
+                   deqpreds.begin(),
+                   [](MODEL_OUTPUT_NUMBER_T v) {
+                    return static_cast<metric_return_t>(v) / (1 << MODEL_OUTPUT_SCALE_FACTOR);
                    });
 
     for (auto &metric: this->metrics) {
-      metric->update(preds_avg, q_targets);
+      metric->update(deqpreds, targets);
     }
 
     return preds_avg;
