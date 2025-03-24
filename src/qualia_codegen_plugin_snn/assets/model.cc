@@ -51,7 +51,7 @@ void cnn(
 {% if dump_featuremaps %}
   char path[FILENAME_MAX] = { '\0' };
   // Prepare output file name
-  snprintf(path, FILENAME_MAX, "{{ dump_featuremaps_path }}/%d/%d/{{ nodes[0].layer.name }}.csv", sample, timestep);
+  snprintf(path, FILENAME_MAX, "{{ dump_featuremaps_path }}/%d/%d/{{ nodes[0].layer.name }}.json", sample, timestep);
 
   // Input
   {{ featuremaps.write(nodes, allocation, nodes[0]) }}
@@ -105,7 +105,7 @@ void cnn(
 
   {% if dump_featuremaps %}
   // Prepare output file name
-  snprintf(path, FILENAME_MAX, "{{ dump_featuremaps_path }}/%d/%d/{{ node.layer.name }}.csv", sample, timestep);
+  snprintf(path, FILENAME_MAX, "{{ dump_featuremaps_path }}/%d/%d/{{ node.layer.name }}.json", sample, timestep);
   {{ featuremaps.write(nodes, allocation, node) }}
   {% endif -%}
 {%- endfor %}
