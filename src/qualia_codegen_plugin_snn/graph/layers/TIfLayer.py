@@ -7,7 +7,7 @@ from qualia_codegen_core.graph.layers.TBaseLayer import TBaseLayer
 from qualia_codegen_core.typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections import OrderedDict  # noqa: TC003
+    from collections import OrderedDict
 
     from qualia_codegen_core.typing import NDArrayFloatOrInt
 

@@ -9,7 +9,7 @@ from .TIfLayer import TIfLayer
 
 # We are inside a TYPE_CHECKING block but our custom TYPE_CHECKING constant triggers TCH001-TCH003 so ignore them
 if TYPE_CHECKING:
-    from collections import OrderedDict  # noqa: TC003
+    from collections import OrderedDict
 
     from qualia_codegen_core.typing import NDArrayFloatOrInt
 

@@ -38,23 +38,23 @@ logger = logging.getLogger(__name__)
 class TorchModelGraph(qualia_codegen_core.graph.TorchModelGraph):
     MODULE_MAPPING: ClassVar[dict[type[Module], Callable[[Module, TBaseLayer], tuple[type[TBaseLayer], list[Any]]]]] = {
         # SNN layers
-        IFNode: lambda module, _: (TIfLayer, [np.array(cast(IFNode, module).v_threshold, dtype=np.float32),
-                                              np.array(cast(IFNode, module).v_reset, dtype=np.float32)
+        IFNode: lambda module, _: (TIfLayer, [np.array(cast('IFNode', module).v_threshold, dtype=np.float32),
+                                              np.array(cast('IFNode', module).v_reset, dtype=np.float32)
                                                 if module.v_reset is not None else None,
-                                              int(cast(IFNode, module).v_reset is None)]),
-        LIFNode: lambda module, _: (TLifLayer, [np.array(cast(LIFNode, module).v_threshold, dtype=np.float32),
-                                                np.array(cast(LIFNode, module).v_reset, dtype=np.float32)
+                                              int(cast('IFNode', module).v_reset is None)]),
+        LIFNode: lambda module, _: (TLifLayer, [np.array(cast('LIFNode', module).v_threshold, dtype=np.float32),
+                                                np.array(cast('LIFNode', module).v_reset, dtype=np.float32)
                                                   if module.v_reset is not None else None,
-                                                int(cast(LIFNode, module).v_reset is None),
-                                                np.array(1 / cast(LIFNode, module).tau, dtype=np.float32),
-                                                int(cast(LIFNode, module).decay_input)]),
+                                                int(cast('LIFNode', module).v_reset is None),
+                                                np.array(1 / cast('LIFNode', module).tau, dtype=np.float32),
+                                                int(cast('LIFNode', module).decay_input)]),
         ParametricLIFNode: lambda module, _: (TLifLayer,
-                                              [np.array(cast(ParametricLIFNode, module).v_threshold, dtype=np.float32),
-                                               np.array(cast(ParametricLIFNode, module).v_reset, dtype=np.float32)
+                                              [np.array(cast('ParametricLIFNode', module).v_threshold, dtype=np.float32),
+                                               np.array(cast('ParametricLIFNode', module).v_reset, dtype=np.float32)
                                                  if module.v_reset is not None else None,
-                                               int(cast(ParametricLIFNode, module).v_reset is None),
-                                               np.array(float(cast(ParametricLIFNode, module).w.sigmoid()), dtype=np.float32),
-                                               int(cast(ParametricLIFNode, module).decay_input)]),
+                                               int(cast('ParametricLIFNode', module).v_reset is None),
+                                               np.array(float(cast('ParametricLIFNode', module).w.sigmoid()), dtype=np.float32),
+                                               int(cast('ParametricLIFNode', module).decay_input)]),
         **qualia_codegen_core.graph.TorchModelGraph.MODULE_MAPPING,
     }
 
@@ -71,7 +71,7 @@ class TorchModelGraph(qualia_codegen_core.graph.TorchModelGraph):
 
         # Monkey-patch SeqToANNContainer forward() to be able to trace enclosed module properly
         seqtoanncontainer_forward = SeqToANNContainer.forward
-        SeqToANNContainer.forward = lambda self, x_seq: cast(SequentialForward, super(type(self), self)).forward(x_seq)
+        SeqToANNContainer.forward = lambda self, x_seq: cast('SequentialForward', super(type(self), self)).forward(x_seq)
 
         ret = super().convert(custom_layers)
 
