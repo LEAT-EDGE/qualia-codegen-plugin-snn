@@ -73,8 +73,8 @@ static inline void {{ node.layer.name }}(
         tmp = potential_scaled_to_tmp + tmp; // v + (x - (v - v_reset)) / tau
 #else
         tmp = scale(NUMBER_T, tmp * reciprocal_tau, TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau
-        tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)input[h][w][j], INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau + x
         tmp = potential_scaled_to_tmp - tmp; // v - (v - v_reset) / tau + x
+        tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)input[h][w][j], INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau + x
 #endif
 
         // fire
@@ -174,8 +174,8 @@ static inline void {{ node.layer.name }}(
       tmp = potential_scaled_to_tmp + tmp; // v + (x - (v - v_reset)) / tau
 #else
       tmp = scale(NUMBER_T, tmp * reciprocal_tau, TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau
-      tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)INPUT(i, j), INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau + x
       tmp = potential_scaled_to_tmp - tmp; // v - (v - v_reset) / tau + x
+      tmp = tmp + scale(NUMBER_T, (LONG_NUMBER_T)INPUT(i, j), INPUT_SCALE_FACTOR - TMP_SCALE_FACTOR, OUTPUT_ROUND_MODE); // (v - v_reset) / tau + x
 #endif
 
       // fire
