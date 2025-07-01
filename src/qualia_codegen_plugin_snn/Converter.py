@@ -41,23 +41,7 @@ class Converter(qualia_codegen_core.Converter):
                  timestep_mode: Literal['duplicate', 'iterate'] = 'duplicate') -> None:
         super().__init__(output_path=output_path, dump_featuremaps=dump_featuremaps)
 
-        # Super failed to popuate template_path
-        if self._template_path is None:
-            return
-
-        template_path: Path | None = None
-        # Prepend to template_path so that our files have higher priority over qualia_codegen_core files
-        if isinstance(Converter.TEMPLATE_PATH, Path): # Already Path objected, no need for hackery
-            template_path = Converter.TEMPLATE_PATH
-        elif sys.version_info >= (3, 10): # Python 3.10 may return MultiplexedPath
-            from importlib.readers import MultiplexedPath
-            if isinstance(Converter.TEMPLATE_PATH, MultiplexedPath):
-                template_path = Converter.TEMPLATE_PATH / '' # / operator applies to underlying Path
-
-        if template_path is not None:
-            self._template_path.insert(0, template_path)
-        else: # If we failed, also clear _template_path to fail conversion altogether instead of having incorrect search path
-            self._template_path = None
+        self.template_path_prepend(path=Converter.TEMPLATE_PATH)
 
         self.__timestep_mode = timestep_mode
 
