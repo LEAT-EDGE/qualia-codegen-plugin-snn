@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import sys
 from importlib.resources import files
-from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Literal
 
 import qualia_codegen_core
@@ -13,6 +12,8 @@ import qualia_codegen_core
 from .graph import layers
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from qualia_codegen_core.graph.layers import TBaseLayer
     from qualia_codegen_core.graph.ModelGraph import ModelGraph
 
